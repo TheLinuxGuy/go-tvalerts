@@ -9,12 +9,15 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gregdel/pushover"
 )
 
 // Settings struct for config.json
 type ConfigJSON struct {
 	TVlogfile   string  `json:"TVlogfile"`
 	ConnLogLine float64 `json:"LastConnLogLine"`
+	DiscLogLine float64 `json:"LastDiscLogLine"`
 	LastRun     string  `json:"LastRun"`
 }
 
@@ -45,16 +48,55 @@ func (s *ConfigJSON) saveConfig(settingFile string) error {
 	return nil
 }
 
-func verifyNewAlarm(s ConfigJSON, linematch float64) {
-	// check if new alert is needed or not
-	if s.ConnLogLine != linematch {
-		fmt.Println("Launch alarm ", s.ConnLogLine, " & linematch", linematch)
-		//only alarm is sent, update the struct to avoid double alarm
-		s.ConnLogLine = linematch
+func verifyNewAlarm(s ConfigJSON, linematch float64, kind string) ConfigJSON {
+
+	switch kind {
+	case "connect":
+		if s.ConnLogLine < linematch {
+			fmt.Println("Launch alarm ", s.ConnLogLine, " & linematch", linematch)
+			pushoverNotification("New connection", "CONNECT title")
+			//only alarm is sent, update the struct to avoid double alarm
+			s.ConnLogLine = linematch
+		}
+	case "disconnect":
+		if s.DiscLogLine < linematch {
+			fmt.Println("Launch alarm ", s.DiscLogLine, " & linematch", linematch)
+			pushoverNotification("New connection", "CONNECT title")
+			//only alarm is sent, update the struct to avoid double alarm
+			s.DiscLogLine = linematch
+		}
 	}
+	return s
+}
+
+func pushoverNotification(messageString string, title string) {
+	// Create a new pushover app with a token
+	app := pushover.New("az6p3exoje7usacvfgov2i2o84ba37")
+
+	// Create a new recipient
+	recipient := pushover.NewRecipient("u8Uc4AH3Z3ixWCMrSZUSenrSHmj3Fp")
+
+	// Create the message to send
+	message := &pushover.Message{
+		Message:   messageString,
+		Title:     title,
+		Priority:  pushover.PriorityNormal,
+		Timestamp: time.Now().Unix(),
+		Sound:     pushover.SoundCosmic,
+	}
+
+	// Send the message to the recipient
+	response, err := app.SendMessage(message, recipient)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	// Print the response if you want
+	log.Println(response)
 }
 
 func main() {
+
 	//s := readConfig("config.json")
 	s := readConfig("test.json")
 	fmt.Println("The output was... ", s)
@@ -68,21 +110,29 @@ func main() {
 	defer file.Close()
 
 	// fun search
-	var linematch float64 = 0
+
+	var newConnLineMatch float64 = 0
+	var newDiscLineMatch float64 = 0
 	var line float64 = 1
+
 	// scanner goes line by line. add counter
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		// new connection check string
-		if strings.Contains(scanner.Text(), "firefox.exe") {
-			linematch = line
-			verifyNewAlarm(s, linematch)
+		if strings.Contains(scanner.Text(), "Starting desktop process for") {
+			newConnLineMatch = line
+			s = verifyNewAlarm(s, newConnLineMatch, "connect")
+		}
+		// end session search string = "EndSession(): Session to"
+		if strings.Contains(scanner.Text(), "EndSession(): Session to") {
+			newDiscLineMatch = line
+			s = verifyNewAlarm(s, newDiscLineMatch, "disconnect")
 		}
 		line++
 	}
-	fmt.Println("Found matching last line...", linematch)
 
 	// update the time playtime
 	s.LastRun = (time.Now()).String()
+	fmt.Println(s)
 	s.saveConfig("test.json")
 }
