@@ -61,7 +61,7 @@ func verifyNewAlarm(s ConfigJSON, linematch float64, kind string) ConfigJSON {
 	case "disconnect":
 		if s.DiscLogLine < linematch {
 			fmt.Println("Launch alarm ", s.DiscLogLine, " & linematch", linematch)
-			pushoverNotification("New connection", "CONNECT title")
+			pushoverNotification("New connection", "DisCONNECT title")
 			//only alarm is sent, update the struct to avoid double alarm
 			s.DiscLogLine = linematch
 		}
@@ -99,6 +99,14 @@ func main() {
 
 	//s := readConfig("config.json")
 	s := readConfig("test.json")
+
+	//check if last run was longer than 5 minutes ago
+	//t, err := time.Parse(time.RFC3339Nano, s.LastRun)
+	//if err != nil {
+	//	log.Panic("unable to parse time: %v", err)
+	//}
+	//fmt.Println("The time was parsed... ", t)
+
 	fmt.Println("The output was... ", s)
 	fmt.Printf("%T", s)
 
@@ -132,7 +140,10 @@ func main() {
 	}
 
 	// update the time playtime
-	s.LastRun = (time.Now()).String()
+	nowTime := time.Now()
+	s.LastRun = nowTime.Format("2006-01-02 15:04:05")
+	//s.LastRun = time.Now().String()
+
 	fmt.Println(s)
 	s.saveConfig("test.json")
 }
