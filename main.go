@@ -133,5 +133,5 @@ func main() {
 	nowTime := time.Now()
 	s.LastRun = nowTime.Format("2006-01-02 15:04:05")
 
-	s.saveConfig("test.json")
+	s.saveConfig("config.json")
 }
