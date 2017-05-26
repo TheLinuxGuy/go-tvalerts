@@ -32,3 +32,7 @@ This is open source (read LICENSE.md), if you feel like contributing or adding e
 
 #### About the author
 https://desantolo.com
+
+### Screenshots
+![Screenshot1](https://github.com/TheLinuxGuy/go-tvalerts/blob/master/screenshots/pushoverView.PNG)
+![Screenshot2](https://github.com/TheLinuxGuy/go-tvalerts/blob/master/screenshots/notificationcenterView.PNG)
