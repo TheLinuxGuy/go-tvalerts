@@ -1,3 +1,11 @@
+/*
+go-TValerts: a teamviewer log monitor that notifies you via pushover.
+Author: Giovanni Mazzeo De Santolo
+desantolo.com | github.com/TheLinuxGuy
+
+This file is subject to the terms and conditions defined in file LICENSE.md, which is part of the source package.
+*/
+
 package main
 
 import (
