@@ -15,10 +15,12 @@ import (
 
 // Settings struct for config.json
 type ConfigJSON struct {
-	TVlogfile   string  `json:"TVlogfile"`
-	ConnLogLine float64 `json:"LastConnLogLine"`
-	DiscLogLine float64 `json:"LastDiscLogLine"`
-	LastRun     string  `json:"LastRun"`
+	TVlogfile       string  `json:"TVlogfile"`
+	ConnLogLine     float64 `json:"LastConnLogLine"`
+	DiscLogLine     float64 `json:"LastDiscLogLine"`
+	LastRun         string  `json:"LastRun"`
+	PushoverUserKey string  `json:"PushoverUserKey"`
+	PushoverToken   string  `json:"PushoverToken"`
 }
 
 // Function parses json file into Struct variables
@@ -53,15 +55,15 @@ func verifyNewAlarm(s ConfigJSON, linematch float64, kind string) ConfigJSON {
 	switch kind {
 	case "connect":
 		if s.ConnLogLine < linematch {
-			fmt.Println("Launch alarm ", s.ConnLogLine, " & linematch", linematch)
-			pushoverNotification("New connection", "CONNECT title")
+			log.Println("New connection alarm triggered. ", s.ConnLogLine, " & linematch", linematch)
+			pushoverNotification("Someone has connected to your workstation via Teamviewer", "tvAlert Incoming Connection", s)
 			//only alarm is sent, update the struct to avoid double alarm
 			s.ConnLogLine = linematch
 		}
 	case "disconnect":
 		if s.DiscLogLine < linematch {
-			fmt.Println("Launch alarm ", s.DiscLogLine, " & linematch", linematch)
-			pushoverNotification("New connection", "DisCONNECT title")
+			log.Println("Disconnect alarm triggered. ", s.DiscLogLine, " & linematch", linematch, s)
+			pushoverNotification("Teamviewer session has ended.", "tvAlert Session closed", s)
 			//only alarm is sent, update the struct to avoid double alarm
 			s.DiscLogLine = linematch
 		}
@@ -69,12 +71,12 @@ func verifyNewAlarm(s ConfigJSON, linematch float64, kind string) ConfigJSON {
 	return s
 }
 
-func pushoverNotification(messageString string, title string) {
+func pushoverNotification(messageString string, title string, s ConfigJSON) {
 	// Create a new pushover app with a token
-	app := pushover.New("az6p3exoje7usacvfgov2i2o84ba37")
+	app := pushover.New(s.PushoverToken)
 
 	// Create a new recipient
-	recipient := pushover.NewRecipient("u8Uc4AH3Z3ixWCMrSZUSenrSHmj3Fp")
+	recipient := pushover.NewRecipient(s.PushoverUserKey)
 
 	// Create the message to send
 	message := &pushover.Message{
@@ -97,21 +99,9 @@ func pushoverNotification(messageString string, title string) {
 
 func main() {
 
-	//s := readConfig("config.json")
-	s := readConfig("test.json")
+	s := readConfig("config.json")
 
-	//check if last run was longer than 5 minutes ago
-	//t, err := time.Parse(time.RFC3339Nano, s.LastRun)
-	//if err != nil {
-	//	log.Panic("unable to parse time: %v", err)
-	//}
-	//fmt.Println("The time was parsed... ", t)
-
-	fmt.Println("The output was... ", s)
-	fmt.Printf("%T", s)
-
-	fmt.Println("The path is... ", s.TVlogfile)
-	file, err := os.Open("TeamViewer12_Logfile.log")
+	file, err := os.Open(s.TVlogfile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -142,8 +132,6 @@ func main() {
 	// update the time playtime
 	nowTime := time.Now()
 	s.LastRun = nowTime.Format("2006-01-02 15:04:05")
-	//s.LastRun = time.Now().String()
 
-	fmt.Println(s)
 	s.saveConfig("test.json")
 }
