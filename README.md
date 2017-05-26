@@ -5,7 +5,7 @@ This application may run on any platform but since I mostly use teamviewer for W
 
 ## How to use and setup go-TValerts
 
-1. Download or build the .exe binary (I'm including the built binary on my repo)
+1. Build the binary from source or simply [download the .exe](https://github.com/TheLinuxGuy/go-tvalerts/blob/master/go-TValerts.exe)
 2. edit example.json with the important data needed to run:
 * **TVlogfile**: Path to Teamviewer log file, it depends on your version. For TV 12 it is C:\Program Files (x86)\TeamViewer\TeamViewer12_Logfile.log
 * **LastConnLogLine**: Leave this at 0. Program will change this value every time it finds a matching new connection on TeamViewer. It uses the variable to track new alarms. 
