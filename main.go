@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/gregdel/pushover"
+	"path/filepath"
 )
 
 // Settings struct for config.json
@@ -105,9 +106,20 @@ func pushoverNotification(messageString string, title string, s ConfigJSON) {
 	log.Println(response)
 }
 
-func main() {
+// This function is needed so when scheduled task runs on Windows we can point to path of config.json
+func executablePathFinder() (string, error) {
+	fullpath, err := os.Executable()
+	folderPath := filepath.Dir(fullpath)
+	return folderPath, err
+}
 
-	s := readConfig("config.json")
+func main() {
+	folderPath, err := executablePathFinder()
+	if err != nil {
+		log.Fatalf("unable to find fullpath with error %v ", err)
+	}
+
+	s := readConfig(folderPath + "\\config.json")
 
 	file, err := os.Open(s.TVlogfile)
 	if err != nil {
@@ -141,5 +153,5 @@ func main() {
 	nowTime := time.Now()
 	s.LastRun = nowTime.Format("2006-01-02 15:04:05")
 
-	s.saveConfig("config.json")
+	s.saveConfig(folderPath + "\\config.json")
 }
