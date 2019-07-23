@@ -136,13 +136,13 @@ func main() {
 	// scanner goes line by line. add counter
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		// new connection check string
-		if strings.Contains(scanner.Text(), "Starting desktop process for") {
+		// new connection check string => Update due to new log format in TV 14
+		if strings.Contains(scanner.Text(), "incoming session via") {
 			newConnLineMatch = line
 			s = verifyNewAlarm(s, newConnLineMatch, "connect")
 		}
-		// end session search string = "EndSession(): Session to"
-		if strings.Contains(scanner.Text(), "EndSession(): Session to") {
+		// end session search string => Update due to new log format in TV 14
+		if strings.Contains(scanner.Text(), "DesktopProcessControl::OnProcessTerminated:") {
 			newDiscLineMatch = line
 			s = verifyNewAlarm(s, newDiscLineMatch, "disconnect")
 		}
